@@ -1,4 +1,78 @@
-<!DOCTYPE html>
+const SHEET_ID = "MASUKKAN_ID_SPREADSHEET";
+
+function doGet() {
+  return HtmlService.createTemplateFromFile('Login')
+    .evaluate()
+    .setTitle("CBT SMKN1 KUOK")
+    .setXFrameOptionsMode(HtmlService.XFrameOptionsMode.ALLOWALL);
+}
+
+function include(file) {
+  return HtmlService.createHtmlOutputFromFile(file).getContent();
+}
+
+function login(username, password) {
+
+  // LOGIN ADMIN
+  if(username == "admin" && password == "smk123"){
+    return {
+      status:true,
+      role:"admin"
+    };
+  }
+
+  const ss = SpreadsheetApp.openById(SHEET_ID);
+
+  // LOGIN SISWA
+  const siswa = ss.getSheetByName("SISWA")
+    .getDataRange()
+    .getValues();
+
+  for(let i=1;i<siswa.length;i++){
+
+    if(
+      siswa[i][0] == username &&
+      siswa[i][1] == password
+    ){
+
+      return {
+        status:true,
+        role:"peserta",
+        nama:siswa[i][2],
+        kelas:siswa[i][3]
+      };
+
+    }
+
+  }
+
+  // LOGIN PENGAWAS
+  const pengawas = ss.getSheetByName("PENGAWAS")
+    .getDataRange()
+    .getValues();
+
+  for(let i=1;i<pengawas.length;i++){
+
+    if(
+      pengawas[i][0] == username &&
+      pengawas[i][1] == password
+    ){
+
+      return {
+        status:true,
+        role:"pengawas",
+        nama:pengawas[i][2]
+      };
+
+    }
+
+  }
+
+  return {
+    status:false
+  };
+
+}<!DOCTYPE html>
 <html>
 <head>
 
