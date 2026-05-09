@@ -1,83 +1,83 @@
-<!-- FILE: index.html -->
 <!DOCTYPE html>
-<html lang="id">
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>CBT SMKN 1 KUOK</title>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
 
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+<title>CBT SMKN 1 KUOK</title>
 
-  <style>
-    body{
-      background:#eef2f7;
-      font-family:Arial;
-    }
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
 
-    .login-box{
-      max-width:400px;
-      margin:auto;
-      margin-top:100px;
-    }
-
-    .card{
-      border:none;
-      border-radius:15px;
-      box-shadow:0 5px 15px rgba(0,0,0,0.1);
-    }
-
-    .title{
-      font-weight:bold;
-      color:#0d6efd;
-    }
-  </style>
+<link rel="stylesheet"
+href="style.css">
 </head>
+
 <body>
 
-<div class="login-box">
+<div class="container">
 
-  <div class="card p-4">
+<div class="row justify-content-center">
 
-    <h3 class="text-center title">
-      CBT SMKN 1 KUOK
-    </h3>
+<div class="col-md-4 mt-5">
 
-    <hr>
+<div class="card-box">
 
-    <input type="text"
-           id="nisn"
-           class="form-control mb-3"
-           placeholder="NISN">
+<h3 class="text-center">
+CBT SMKN 1 KUOK
+</h3>
 
-    <input type="password"
-           id="password"
-           class="form-control mb-3"
-           placeholder="Password">
+<hr>
 
-    <button class="btn btn-primary w-100"
-            onclick="login()">
-      LOGIN
-    </button>
+<select id="role"
+class="form-control mb-3">
+<option value="peserta">Peserta</option>
+<option value="pengawas">Pengawas</option>
+<option value="admin">Admin</option>
+</select>
 
-  </div>
+<input type="text"
+id="username"
+class="form-control mb-3"
+placeholder="Username">
+
+<input type="password"
+id="password"
+class="form-control mb-3"
+placeholder="Password">
+
+<button onclick="login()"
+class="btn btn-primary w-100">
+LOGIN
+</button>
+
+</div>
+
+</div>
+
+</div>
 
 </div>
 
 <script>
 
 const API =
-"https://script.google.com/macros/s/ISI_WEBAPP_ANDA/exec";
+"ISI_URL_WEBAPP";
 
 async function login(){
 
-  const nisn =
-  document.getElementById("nisn").value;
+  const username =
+  document.getElementById("username").value;
 
   const password =
   document.getElementById("password").value;
 
+  const role =
+  document.getElementById("role").value;
+
   const url =
-  `${API}?action=login&nisn=${nisn}&password=${password}`;
+  `${API}?action=login&username=${username}&password=${password}&role=${role}`;
 
   const res = await fetch(url);
 
@@ -90,7 +90,17 @@ async function login(){
       JSON.stringify(data)
     );
 
-    window.location="ujian.html";
+    if(role == "admin"){
+      location="admin.html";
+    }
+
+    if(role == "pengawas"){
+      location="pengawas.html";
+    }
+
+    if(role == "peserta"){
+      location="ujian.html";
+    }
 
   }else{
 
@@ -99,6 +109,415 @@ async function login(){
 }
 
 </script>
+
+</body>
+</html><html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>Ujian CBT</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
+
+<link rel="stylesheet"
+href="style.css">
+</head>
+
+<body>
+
+<div class="timer"
+id="timer">
+60:00
+</div>
+
+<div class="container mt-4">
+
+<h3>ASESMEN SUMATIF</h3>
+
+<div id="soal"></div>
+
+<button class="btn btn-success"
+onclick="kirimJawaban()">
+KUMPULKAN
+</button>
+
+</div>
+
+<script>
+
+const API =
+"ISI_URL_WEBAPP";
+
+let soalData = [];
+let pelanggaran = 0;
+
+const user =
+JSON.parse(
+localStorage.getItem("user")
+);
+
+async function loadSoal(){
+
+  const kelas = user.kelas;
+  const mapel = "Matematika";
+
+  const url =
+  `${API}?action=getSoal&kelas=${kelas}&mapel=${mapel}`;
+
+  const res = await fetch(url);
+
+  const data = await res.json();
+
+  soalData = data;
+
+  let html = "";
+
+  data.forEach((s,i)=>{
+
+    html += `
+
+    <div class="card-box">
+
+    <h5>${i+1}. ${s.soal}</h5>
+
+    ${s.gambar ?
+      `<img src="${s.gambar}" class="img-fluid mb-3">`
+      : ""
+    }
+
+    ${s.audio ?
+      `<audio controls>
+      <source src="${s.audio}">
+      </audio>`
+      : ""
+    }
+
+    <div class="mt-3">
+
+    <input type="radio"
+    name="soal${i}"
+    value="A"> ${s.a}<br><br>
+
+    <input type="radio"
+    name="soal${i}"
+    value="B"> ${s.b}<br><br>
+
+    <input type="radio"
+    name="soal${i}"
+    value="C"> ${s.c}<br><br>
+
+    <input type="radio"
+    name="soal${i}"
+    value="D"> ${s.d}
+
+    </div>
+
+    </div>
+
+    `;
+  });
+
+  document.getElementById("soal")
+  .innerHTML = html;
+}
+
+loadSoal();
+
+let waktu = 60 * 60;
+
+setInterval(()=>{
+
+  let menit =
+  Math.floor(waktu/60);
+
+  let detik =
+  waktu % 60;
+
+  document.getElementById("timer")
+  .innerHTML =
+  `${menit}:${detik}`;
+
+  waktu--;
+
+  if(waktu <= 0){
+    kirimJawaban();
+  }
+
+},1000);
+
+async function kirimJawaban(){
+
+  let jawaban = [];
+
+  soalData.forEach((s,i)=>{
+
+    const pilih =
+    document.querySelector(
+      `input[name=soal${i}]:checked`
+    );
+
+    jawaban.push({
+      id:s.id,
+      jawaban: pilih ? pilih.value : ""
+    });
+  });
+
+  const form = new FormData();
+
+  form.append("action","submit");
+  form.append("username",user.username);
+  form.append("nama",user.nama);
+  form.append("kelas",user.kelas);
+  form.append("mapel","Matematika");
+  form.append(
+    "jawaban",
+    JSON.stringify(jawaban)
+  );
+
+  const res = await fetch(API,{
+    method:"POST",
+    body:form
+  });
+
+  const data = await res.json();
+
+  localStorage.setItem(
+    "hasil",
+    JSON.stringify(data)
+  );
+
+  location="hasil.html";
+}
+
+window.onbeforeunload = function(){
+  return "Ujian sedang berjalan";
+}
+
+
+document.addEventListener(
+"visibilitychange",
+
+function(){
+
+  if(document.hidden){
+
+    pelanggaran++;
+
+    alert(
+      "Peringatan ke " + pelanggaran
+    );
+
+    savePelanggaran();
+
+    if(pelanggaran >= 3){
+
+      alert(
+      "Ujian selesai karena kecurangan"
+      );
+
+      kirimJawaban();
+    }
+  }
+});
+
+async function savePelanggaran(){
+
+  const form = new FormData();
+
+  form.append(
+    "action",
+    "pelanggaran"
+  );
+
+  form.append(
+    "username",
+    user.username
+  );
+
+  form.append(
+    "nama",
+    user.nama
+  );
+
+  form.append(
+    "jumlah",
+    pelanggaran
+  );
+
+  await fetch(API,{
+    method:"POST",
+    body:form
+  });
+}
+
+
+document.addEventListener(
+"contextmenu",
+
+e => e.preventDefault()
+);
+
+
+document.addEventListener(
+"copy",
+
+e => e.preventDefault()
+);
+
+
+document.documentElement
+.requestFullscreen();
+
+</script>
+
+</body>
+</html><html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>Hasil Ujian</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
+</head>
+
+<body>
+
+<div class="container mt-5">
+
+<div class="card p-4">
+
+<h3>HASIL UJIAN</h3>
+
+<div id="hasil"></div>
+
+</div>
+
+</div>
+
+<script>
+
+const data = JSON.parse(
+localStorage.getItem("hasil")
+);
+
+let html = `
+
+<h4>Nilai : ${data.nilai}</h4>
+<h5>Benar : ${data.benar}</h5>
+<h5>Salah : ${data.salah}</h5>
+
+`;
+
+
+document.getElementById("hasil")
+.innerHTML = html;
+
+</script>
+
+</body>
+</html><html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>Dashboard Admin</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
+
+<link rel="stylesheet"
+href="style.css">
+</head>
+
+<body>
+
+<div class="sidebar">
+
+<h3>ADMIN</h3>
+
+<a href="#">Dashboard</a>
+<a href="#">Peserta</a>
+<a href="#">Pengawas</a>
+<a href="#">Soal</a>
+<a href="#">Jadwal</a>
+<a href="#">Nilai</a>
+<a href="#">Absensi</a>
+<a href="#">Berita Acara</a>
+<a href="#">Pelanggaran</a>
+
+</div>
+
+<div class="content">
+
+<div class="card-box">
+
+<h3>Dashboard CBT</h3>
+
+<p>
+ASESMEN SUMATIF
+SMKN 1 KUOK
+2025-2026
+</p>
+
+<button onclick="window.print()"
+class="btn btn-success">
+PRINT DATA
+</button>
+
+</div>
+
+</div>
+
+</body>
+</html><html>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+content="width=device-width, initial-scale=1">
+
+<title>Pengawas</title>
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
+
+<link rel="stylesheet"
+href="style.css">
+</head>
+
+<body>
+
+<div class="container mt-4">
+
+<div class="card-box">
+
+<h3>ABSENSI PESERTA</h3>
+
+<input type="text"
+class="form-control mb-3"
+placeholder="Ruang Ujian">
+
+<input type="text"
+class="form-control mb-3"
+placeholder="Hari / Tanggal">
+
+<textarea
+class="form-control mb-3"
+placeholder="Berita Acara"></textarea>
+
+<button class="btn btn-primary">
+SIMPAN
+</button>
+
+</div>
+
+</div>
 
 </body>
 </html>
